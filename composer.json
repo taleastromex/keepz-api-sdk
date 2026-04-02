@@ -1,0 +1,24 @@
+{
+    "name": "davut-sergeev/keepz-api-sdk",
+    "description": "PHP SDK for Keepz API",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "KeepzSdk\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Davut",
+            "email": "sergeev.davutt@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.3 || ^8.0",
+        "ext-openssl": "*",
+        "ext-json": "*",
+        "psr/http-client": "^1.0",
+        "psr/http-message": "^1.0"
+    }
+}
