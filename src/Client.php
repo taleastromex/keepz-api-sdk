@@ -28,7 +28,7 @@ class Client
      * @param HttpClient $http
      * @param Encryptor $encryptor
      */
-    public function __construct($baseUrl, $identifier, $http, $encryptor)
+    public function __construct(string $baseUrl, string $identifier, HttpClient $http, Encryptor $encryptor)
     {
         $this->baseUrl = $baseUrl;
         $this->identifier = $identifier;
@@ -36,7 +36,7 @@ class Client
         $this->encryptor = $encryptor;
     }
 
-    public function orders()
+    public function orders(): OrderService
     {
         return new OrderService($this);
     }

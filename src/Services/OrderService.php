@@ -20,8 +20,8 @@ class OrderService
     }
 
     /**
-     * @param array $data
-     * @return array
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
      */
     public function create(array $data): array
     {
@@ -36,9 +36,9 @@ class OrderService
     }
 
     /**
-     * @param array $orderData
-     * @param array $distributions
-     * @return array
+     * @param array<string, mixed> $orderData
+     * @param array<string, mixed> $distributions
+     * @return array<string, mixed> 
      */
     public function createSplit(array $orderData, array $distributions): array
     {
