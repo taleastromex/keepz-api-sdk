@@ -34,4 +34,16 @@ class OrderService
             ], $encrypted)
         );
     }
+
+    /**
+     * @param array $orderData
+     * @param array $distributions
+     * @return array
+     */
+    public function createSplit(array $orderData, array $distributions): array
+    {
+        $orderData['distributions'] = $distributions;
+
+        return $this->create($orderData);
+    }
 }
