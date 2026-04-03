@@ -21,10 +21,10 @@ class Encryptor
     }
 
     /**
-     * @param array $data
-     * @return array
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
      */
-    public function encrypt(array $data)
+    public function encrypt(array $data): array
     {
         $aesKey = random_bytes(32);
         $iv = random_bytes(16);
@@ -46,6 +46,7 @@ class Encryptor
         $rsaPayload = base64_encode($aesKey) . '.' . base64_encode($iv);
 
         // 3. Load public key via phpseclib
+        /** @var RSA $publicKey */
         $publicKey = PublicKeyLoader::load($this->publicKey);
 
         $encryptedKeys = $publicKey

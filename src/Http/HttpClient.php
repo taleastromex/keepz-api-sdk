@@ -8,10 +8,10 @@ class HttpClient
 {
     /**
      * @param string $url
-     * @param array $data
-     * @return array
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
      */
-    public function post($url, array $data)
+    public function post(string $url, array $data): array
     {
         $ch = curl_init($url);
 
