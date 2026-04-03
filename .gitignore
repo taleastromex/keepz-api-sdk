@@ -1,1 +1,7 @@
 vendor/
+.idea/
+.vscode/
+.DS_Store
+Dockerfile
+docker-compose.yml
+public/index.php
