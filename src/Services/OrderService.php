@@ -37,7 +37,7 @@ class OrderService
 
     /**
      * @param array<string, mixed> $orderData
-     * @param array<string, mixed> $distributions
+     * @param array<int, array<string, mixed>> $distributions
      * @return array<string, mixed> 
      */
     public function createSplit(array $orderData, array $distributions): array
