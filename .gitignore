@@ -5,3 +5,4 @@ vendor/
 Dockerfile
 docker-compose.yml
 public/index.php
+.phpunit.result.cache
