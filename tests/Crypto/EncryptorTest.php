@@ -64,7 +64,7 @@ class EncryptorTest extends TestCase
     {
         $result = $this->makeEncryptor()->encrypt(['amount' => 100]);
 
-        $decoded = base64_decode($result['encryptedData'], strict: true);
+        $decoded = base64_decode($result['encryptedData'], true);
         $this->assertNotFalse($decoded, 'encryptedData is not valid base64');
         $this->assertNotEmpty($decoded);
     }
@@ -73,7 +73,7 @@ class EncryptorTest extends TestCase
     {
         $result = $this->makeEncryptor()->encrypt(['amount' => 100]);
 
-        $decoded = base64_decode($result['encryptedKeys'], strict: true);
+        $decoded = base64_decode($result['encryptedKeys'], true);
         $this->assertNotFalse($decoded, 'encryptedKeys is not valid base64');
         $this->assertNotEmpty($decoded);
     }
@@ -99,9 +99,9 @@ class EncryptorTest extends TestCase
     // -------------------------------------------------------------------------
 
     /**
+     * @dataProvider payloadProvider
      * @param array<string, mixed> $payload
      */
-    #[\PHPUnit\Framework\Attributes\DataProvider('payloadProvider')]
     public function testRoundTripDecryptionRecoverOriginalPayload(array $payload): void
     {
         $result = $this->makeEncryptor()->encrypt($payload);

@@ -9,7 +9,6 @@ use KeepzSdk\Crypto\Encryptor;
 use KeepzSdk\Http\HttpClient;
 use KeepzSdk\Services\OrderService;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class OrderServiceTest extends TestCase
@@ -17,13 +16,14 @@ class OrderServiceTest extends TestCase
     private const BASE_URL   = 'https://gateway.dev.keepz.me/ecommerce-service';
     private const IDENTIFIER = 'test-integrator-id';
 
-    /** @var HttpClient&Stub */
-    private HttpClient $http;
+    /** @var HttpClient|MockObject */
+    private $http;
 
-    /** @var Encryptor&Stub */
-    private Encryptor $encryptor;
+    /** @var Encryptor|MockObject */
+    private $encryptor;
 
-    private OrderService $service;
+    /** @var OrderService */
+    private $service;
 
     protected function setUp(): void
     {
