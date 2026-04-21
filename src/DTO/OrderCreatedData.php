@@ -6,13 +6,10 @@ namespace KeepzSdk\DTO;
 
 final class OrderCreatedData
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     private $integratorOrderId;
-    /**
-     * @var string
-     */
+
+    /** @var string */
     private $urlForQR;
 
     public function __construct(
