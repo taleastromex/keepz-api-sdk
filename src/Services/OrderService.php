@@ -27,12 +27,19 @@ class OrderService
     {
         $encrypted = $this->client->getEncryptor()->encrypt($data);
 
-        return $this->client->getHttp()->post(
+        $response = $this->client->getHttp()->post(
             $this->client->getBaseUrl() . '/api/integrator/order',
             array_merge([
                 'identifier' => $this->client->getIdentifier(),
             ], $encrypted)
         );
+
+        $decryptor = $this->client->getDecryptor();
+        if ($decryptor !== null) {
+            return $decryptor->decrypt($response);
+        }
+
+        return $response;
     }
 
     /**

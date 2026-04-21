@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace KeepzSdk\Tests\Services;
 
 use KeepzSdk\Client;
+use KeepzSdk\Crypto\Decryptor;
 use KeepzSdk\Crypto\Encryptor;
 use KeepzSdk\Http\HttpClient;
 use KeepzSdk\Services\OrderService;
@@ -22,6 +23,9 @@ class OrderServiceTest extends TestCase
     /** @var Encryptor|MockObject */
     private $encryptor;
 
+    /** @var Decryptor|MockObject|null */
+    private $decryptor;
+
     /** @var OrderService */
     private $service;
 
@@ -29,6 +33,7 @@ class OrderServiceTest extends TestCase
     {
         $this->http      = $this->createStub(HttpClient::class);
         $this->encryptor = $this->createStub(Encryptor::class);
+        $this->decryptor = null;
 
         $this->rebuildService();
     }
@@ -184,12 +189,70 @@ class OrderServiceTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // Auto-decryption
+    // -------------------------------------------------------------------------
+
+    public function testCreateDecryptsResponseWhenDecryptorIsInjected(): void
+    {
+        $plainResponse   = ['orderId' => 'abc-123', 'status' => 'PENDING'];
+        $encryptedApiResponse = ['encryptedData' => 'resp==', 'encryptedKeys' => 'keys==', 'aes' => true];
+
+        $this->encryptor->method('encrypt')->willReturn($this->fakeEnvelope());
+        $this->http->method('post')->willReturn($encryptedApiResponse);
+
+        /** @var Decryptor&MockObject $decryptor */
+        $decryptor = $this->createMock(Decryptor::class);
+        $decryptor->expects($this->once())
+            ->method('decrypt')
+            ->with($encryptedApiResponse)
+            ->willReturn($plainResponse);
+
+        $this->decryptor = $decryptor;
+        $this->rebuildService();
+
+        $this->assertSame($plainResponse, $this->service->create($this->minimalOrder()));
+    }
+
+    public function testCreateDoesNotDecryptWhenNoDecryptorProvided(): void
+    {
+        $encryptedApiResponse = ['encryptedData' => 'resp==', 'encryptedKeys' => 'keys==', 'aes' => true];
+
+        $this->encryptor->method('encrypt')->willReturn($this->fakeEnvelope());
+        $this->http->method('post')->willReturn($encryptedApiResponse);
+
+        $this->decryptor = null;
+        $this->rebuildService();
+
+        $this->assertSame($encryptedApiResponse, $this->service->create($this->minimalOrder()));
+    }
+
+    public function testCreatePassesThroughErrorResponseEvenWithDecryptor(): void
+    {
+        $errorResponse = ['message' => 'Permission denied', 'statusCode' => 6031, 'exceptionGroup' => 3];
+
+        $this->encryptor->method('encrypt')->willReturn($this->fakeEnvelope());
+        $this->http->method('post')->willReturn($errorResponse);
+
+        /** @var Decryptor&MockObject $decryptor */
+        $decryptor = $this->createMock(Decryptor::class);
+        $decryptor->expects($this->once())
+            ->method('decrypt')
+            ->with($errorResponse)
+            ->willReturn($errorResponse);
+
+        $this->decryptor = $decryptor;
+        $this->rebuildService();
+
+        $this->assertSame($errorResponse, $this->service->create($this->minimalOrder()));
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
     private function rebuildService(): void
     {
-        $client        = new Client(self::BASE_URL, self::IDENTIFIER, $this->http, $this->encryptor);
+        $client        = new Client(self::BASE_URL, self::IDENTIFIER, $this->http, $this->encryptor, $this->decryptor);
         $this->service = new OrderService($client);
     }
 
