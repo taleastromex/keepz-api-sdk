@@ -35,6 +35,7 @@ class ApiGatewayTest extends TestCase
         $this->encryptor->method('encrypt')->willReturn($this->fakeEnvelope());
         $this->http->method('post')->willReturn($this->fakeEncryptedApiResponse());
         $this->http->method('get')->willReturn($this->fakeEncryptedApiResponse());
+        $this->http->method('delete')->willReturn($this->fakeEncryptedApiResponse());
         $this->decryptor->method('decrypt')->willReturn($this->fakePlainData());
     }
 
@@ -216,6 +217,102 @@ class ApiGatewayTest extends TestCase
         $this->expectExceptionCode(404);
 
         $this->makeGateway()->get('/api/integrator/order/status', []);
+    }
+
+    // -------------------------------------------------------------------------
+    // delete()
+    // -------------------------------------------------------------------------
+
+    public function testDeleteBuildsCorrectUrl(): void
+    {
+        /** @var HttpClientInterface&MockObject $http */
+        $http = $this->createMock(HttpClientInterface::class);
+        $http->expects($this->once())
+            ->method('delete')
+            ->with(self::BASE_URL . '/api/integrator/order/cancel', $this->anything())
+            ->willReturn($this->fakeEncryptedApiResponse());
+
+        $this->http = $http;
+        $this->makeGateway()->delete('/api/integrator/order/cancel', ['integratorOrderId' => 'x']);
+    }
+
+    public function testDeleteMergesIdentifierWithEncryptedEnvelope(): void
+    {
+        $envelope = $this->fakeEnvelope();
+        $this->encryptor->method('encrypt')->willReturn($envelope);
+
+        /** @var HttpClientInterface&MockObject $http */
+        $http = $this->createMock(HttpClientInterface::class);
+        $http->expects($this->once())
+            ->method('delete')
+            ->with($this->anything(), [
+                'identifier'    => self::IDENTIFIER,
+                'encryptedData' => $envelope['encryptedData'],
+                'encryptedKeys' => $envelope['encryptedKeys'],
+                'aes'           => true,
+            ])
+            ->willReturn($this->fakeEncryptedApiResponse());
+
+        $this->http = $http;
+        $this->makeGateway()->delete('/api/integrator/order/cancel', ['integratorOrderId' => 'x']);
+    }
+
+    public function testDeleteEncryptsPayloadBeforeSending(): void
+    {
+        $data = ['integratorId' => 'id', 'integratorOrderId' => 'order-id'];
+
+        /** @var Encryptor&MockObject $encryptor */
+        $encryptor = $this->createMock(Encryptor::class);
+        $encryptor->expects($this->once())
+            ->method('encrypt')
+            ->with($data)
+            ->willReturn($this->fakeEnvelope());
+
+        $this->encryptor = $encryptor;
+        $this->makeGateway()->delete('/api/integrator/order/cancel', $data);
+    }
+
+    public function testDeleteReturnsDecryptedResponse(): void
+    {
+        $plainData = ['integratorOrderId' => 'uuid', 'status' => 'CANCELLED'];
+
+        $this->decryptor = $this->createMock(Decryptor::class);
+        $this->decryptor->method('decrypt')->willReturn($plainData);
+
+        $this->http = $this->createMock(HttpClientInterface::class);
+        $this->http->method('delete')->willReturn($this->fakeEncryptedApiResponse());
+
+        $result = $this->makeGateway()->delete('/api/integrator/order/cancel', ['integratorOrderId' => 'x']);
+
+        $this->assertSame($plainData, $result);
+    }
+
+    public function testDeleteThrowsApiExceptionOnErrorResponse(): void
+    {
+        $this->http = $this->createMock(HttpClientInterface::class);
+        $this->http->method('delete')->willReturn(['message' => 'Forbidden', 'statusCode' => 403]);
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionCode(403);
+
+        $this->makeGateway()->delete('/api/integrator/order/cancel', ['integratorOrderId' => 'x']);
+    }
+
+    public function testDeleteDoesNotCallDecryptorOnErrorResponse(): void
+    {
+        $this->http = $this->createMock(HttpClientInterface::class);
+        $this->http->method('delete')->willReturn(['message' => 'Error', 'statusCode' => 500]);
+
+        /** @var Decryptor&MockObject $decryptor */
+        $decryptor = $this->createMock(Decryptor::class);
+        $decryptor->expects($this->never())->method('decrypt');
+        $this->decryptor = $decryptor;
+
+        try {
+            $this->makeGateway()->delete('/api/integrator/order/cancel', ['integratorOrderId' => 'x']);
+        } catch (ApiException $e) {
+            // expected
+        }
     }
 
     // -------------------------------------------------------------------------

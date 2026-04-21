@@ -206,6 +206,101 @@ class HttpClientTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // DELETE
+    // -------------------------------------------------------------------------
+
+    public function testDeleteReturnsDecodedJsonResponse(): void
+    {
+        $expectedResponse = ['status' => 'deleted'];
+        $json = json_encode($expectedResponse);
+        assert(is_string($json));
+
+        $this->mockCurl($json);
+
+        $result = (new HttpClient())->delete('https://example.com/resource/123');
+
+        $this->assertSame($expectedResponse, $result);
+    }
+
+    public function testDeleteSetsCustomRequestToDelete(): void
+    {
+        $curlSetopt = $this->getFunctionMock(self::NAMESPACE, 'curl_setopt_array');
+        $curlSetopt->expects($this->once())
+            ->willReturnCallback(function ($ch, array $options): bool {
+                $this->assertSame('DELETE', $options[CURLOPT_CUSTOMREQUEST]);
+                return true;
+            });
+
+        $this->mockCurlInitAndExec('{}');
+
+        (new HttpClient())->delete('https://example.com/resource/123');
+    }
+
+    public function testDeleteAppendsQueryStringToUrl(): void
+    {
+        $curlInit = $this->getFunctionMock(self::NAMESPACE, 'curl_init');
+        $curlInit->expects($this->once())
+            ->willReturnCallback(function (string $url): mixed {
+                $this->assertSame('https://example.com/resource/123?identifier=abc&aes=1', $url);
+                return curl_init();
+            });
+
+        $curlSetopt = $this->getFunctionMock(self::NAMESPACE, 'curl_setopt_array');
+        $curlSetopt->expects($this->once())->willReturn(true);
+
+        $curlExec = $this->getFunctionMock(self::NAMESPACE, 'curl_exec');
+        $curlExec->expects($this->once())->willReturn('{}');
+
+        (new HttpClient())->delete('https://example.com/resource/123', ['identifier' => 'abc', 'aes' => true]);
+    }
+
+    public function testDeleteWithNoQueryDoesNotAppendQuestionMark(): void
+    {
+        $curlInit = $this->getFunctionMock(self::NAMESPACE, 'curl_init');
+        $curlInit->expects($this->once())
+            ->willReturnCallback(function (string $url): mixed {
+                $this->assertSame('https://example.com/resource/123', $url);
+                return curl_init();
+            });
+
+        $curlSetopt = $this->getFunctionMock(self::NAMESPACE, 'curl_setopt_array');
+        $curlSetopt->expects($this->once())->willReturn(true);
+
+        $curlExec = $this->getFunctionMock(self::NAMESPACE, 'curl_exec');
+        $curlExec->expects($this->once())->willReturn('{}');
+
+        (new HttpClient())->delete('https://example.com/resource/123');
+    }
+
+    public function testDeleteDoesNotSetPostFields(): void
+    {
+        $curlSetopt = $this->getFunctionMock(self::NAMESPACE, 'curl_setopt_array');
+        $curlSetopt->expects($this->once())
+            ->willReturnCallback(function ($ch, array $options): bool {
+                $this->assertArrayNotHasKey(CURLOPT_POSTFIELDS, $options);
+                return true;
+            });
+
+        $this->mockCurlInitAndExec('{}');
+
+        (new HttpClient())->delete('https://example.com/resource/123', ['foo' => 'bar']);
+    }
+
+    public function testDeleteEnablesReturnTransfer(): void
+    {
+        $curlSetopt = $this->getFunctionMock(self::NAMESPACE, 'curl_setopt_array');
+        $curlSetopt->expects($this->once())
+            ->willReturnCallback(function ($ch, array $options): bool {
+                $this->assertTrue((bool) $options[CURLOPT_RETURNTRANSFER]);
+                return true;
+            });
+
+        $this->mockCurlInitAndExec('{}');
+
+        (new HttpClient())->delete('https://example.com/resource/123');
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

@@ -2,6 +2,17 @@
 
 PHP SDK for the [Keepz](https://www.developers.keepz.me) eCommerce payment API.
 
+- [Setup](#setup)
+- [Create an Order](#create-an-order)
+  - [Optional fields](#optional-fields)
+  - [Payment method pre-selection](#payment-method-pre-selection)
+  - [Save a card](#save-a-card)
+  - [Charge a saved card](#charge-a-saved-card)
+  - [Split payment](#split-payment)
+- [Get Order Status](#get-order-status)
+- [Cancel Order](#cancel-order)
+- [Error handling](#error-handling)
+
 ## Setup
 
 ```php
@@ -56,15 +67,15 @@ On success `create()` returns an `OrderCreatedData` object. On any API error it 
 
 ### Optional fields
 
-| Field | Values | Description |
-|---|---|---|
-| `currency` | `GEL` `USD` `EUR` | Displayed currency (default: `GEL`) |
-| `language` | `EN` `IT` `KA` | Checkout page language |
-| `commissionType` | `SENDER` `RECEIVER` `BOTH` | Who pays the transaction fee |
-| `successRedirectUri` | URL | Redirect after successful payment |
-| `failRedirectUri` | URL | Redirect after failed payment |
-| `callbackUri` | URL | Webhook called on payment completion |
-| `validUntil` | `yyyy-MM-dd HH:mm:ss` | Order expiry datetime |
+| Field                | Values                     | Description                          |
+|----------------------|----------------------------|--------------------------------------|
+| `currency`           | `GEL` `USD` `EUR`          | Displayed currency (default: `GEL`)  |
+| `language`           | `EN` `IT` `KA`             | Checkout page language               |
+| `commissionType`     | `SENDER` `RECEIVER` `BOTH` | Who pays the transaction fee         |
+| `successRedirectUri` | URL                        | Redirect after successful payment    |
+| `failRedirectUri`    | URL                        | Redirect after failed payment        |
+| `callbackUri`        | URL                        | Webhook called on payment completion |
+| `validUntil`         | `yyyy-MM-dd HH:mm:ss`      | Order expiry datetime                |
 
 ### Payment method pre-selection
 
@@ -147,6 +158,30 @@ $order->getUrlForQR(); // show to the customer
 ```
 
 `receiverType` per distribution can be `BRANCH`, `USER`, or `IBAN`.
+
+## Get Order Status
+
+```php
+
+$orderStatusData = $client->orders()->getOrderStatus($integratorId, $integratorOrderId);
+
+$order->getIntegratorOrderId(); // 'your-unique-order-uuid'
+$order->getStatus(); // Order Status
+
+```
+
+You can see possible statuses in official [keepz api documentation](https://www.developers.keepz.me/eCommerece%20integration/get-order-status#response-details)
+
+## Cancel Order
+
+```php
+
+$orderStatusData = $client->orders()->cancel($integratorId, $integratorOrderId);
+
+$order->getIntegratorOrderId(); // 'your-unique-order-uuid'
+$order->getStatus(); // Order Status (CANCELED)
+
+```
 
 ---
 

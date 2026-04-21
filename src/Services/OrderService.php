@@ -33,6 +33,7 @@ class OrderService
     /**
      * @param array<string, mixed> $orderData
      * @param array<int, array<string, mixed>> $distributions
+     * @return OrderCreatedData
      * @throws ApiException
      */
     public function createSplit(array $orderData, array $distributions): OrderCreatedData
@@ -43,12 +44,31 @@ class OrderService
     }
 
     /**
+     * @param string $integratorId
+     * @param string $integratorOrderId
+     * @return OrderStatusData
      * @throws ApiException
      */
     public function getOrderStatus(string $integratorId, string $integratorOrderId): OrderStatusData
     {
         return OrderStatusData::fromArray(
             $this->gateway->get('/api/integrator/order/status', [
+                'integratorId' => $integratorId,
+                'integratorOrderId' => $integratorOrderId,
+            ])
+        );
+    }
+
+    /**
+     * @param string $integratorId
+     * @param string $integratorOrderId
+     * @throws ApiException
+     * @return OrderStatusData
+     */
+    public function cancel(string $integratorId, string $integratorOrderId): OrderStatusData
+    {
+        return OrderStatusData::fromArray(
+            $this->gateway->delete('/api/integrator/order/cancel', [
                 'integratorId' => $integratorId,
                 'integratorOrderId' => $integratorOrderId,
             ])

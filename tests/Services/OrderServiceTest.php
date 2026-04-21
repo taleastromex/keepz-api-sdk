@@ -180,6 +180,64 @@ class OrderServiceTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // cancel()
+    // -------------------------------------------------------------------------
+
+    public function testCancelDeletesToCorrectPath(): void
+    {
+        /** @var ApiGateway&MockObject $gateway */
+        $gateway = $this->createMock(ApiGateway::class);
+        $gateway->expects($this->once())
+            ->method('delete')
+            ->with('/api/integrator/order/cancel', $this->anything())
+            ->willReturn($this->fakeCancelResponse());
+
+        (new OrderService($gateway))->cancel('integrator-id', 'order-id');
+    }
+
+    public function testCancelForwardsCorrectPayload(): void
+    {
+        /** @var ApiGateway&MockObject $gateway */
+        $gateway = $this->createMock(ApiGateway::class);
+        $gateway->expects($this->once())
+            ->method('delete')
+            ->with($this->anything(), [
+                'integratorId'      => 'integrator-id',
+                'integratorOrderId' => 'order-id',
+            ])
+            ->willReturn($this->fakeCancelResponse());
+
+        (new OrderService($gateway))->cancel('integrator-id', 'order-id');
+    }
+
+    public function testCancelReturnsOrderStatusData(): void
+    {
+        /** @var ApiGateway&MockObject $gateway */
+        $gateway = $this->createStub(ApiGateway::class);
+        $gateway->method('delete')->willReturn($this->fakeCancelResponse());
+
+        $result = (new OrderService($gateway))->cancel('integrator-id', 'order-id');
+
+        $this->assertInstanceOf(OrderStatusData::class, $result);
+        $this->assertSame('order-id', $result->getIntegratorOrderId());
+        $this->assertSame('CANCELLED', $result->getStatus());
+    }
+
+    public function testCancelPropagatesApiException(): void
+    {
+        /** @var ApiGateway&MockObject $gateway */
+        $gateway = $this->createStub(ApiGateway::class);
+        $gateway->method('delete')->willThrowException(
+            new ApiException(['message' => 'Order cannot be cancelled', 'statusCode' => 4031])
+        );
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionCode(4031);
+
+        (new OrderService($gateway))->cancel('integrator-id', 'order-id');
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
@@ -210,6 +268,15 @@ class OrderServiceTest extends TestCase
         return [
             'integratorOrderId' => 'order-uuid-123',
             'status'            => 'SUCCESS',
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function fakeCancelResponse(): array
+    {
+        return [
+            'integratorOrderId' => 'order-id',
+            'status'            => 'CANCELLED',
         ];
     }
 }
