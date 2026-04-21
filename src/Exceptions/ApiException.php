@@ -20,12 +20,16 @@ class ApiException extends \RuntimeException
      */
     public function __construct(array $response)
     {
-        $this->statusCode = isset($response['statusCode']) ? (int) $response['statusCode'] : 0;
-        $this->exceptionGroup = isset($response['exceptionGroup']) ? (int) $response['exceptionGroup'] : null;
-        $this->rawResponse = $response;
+        $statusCode           = $response['statusCode'] ?? null;
+        $exceptionGroup       = $response['exceptionGroup'] ?? null;
+        $message              = $response['message'] ?? null;
+
+        $this->statusCode     = is_int($statusCode) ? $statusCode : 0;
+        $this->exceptionGroup = is_int($exceptionGroup) ? $exceptionGroup : null;
+        $this->rawResponse    = $response;
 
         parent::__construct(
-            isset($response['message']) ? (string) $response['message'] : 'Unknown API error',
+            is_string($message) ? $message : 'Unknown API error',
             $this->statusCode
         );
     }

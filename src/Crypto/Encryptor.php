@@ -29,9 +29,14 @@ class Encryptor
         $aesKey = random_bytes(32);
         $iv = random_bytes(16);
 
-        // 1. AES encrypt payload
+        $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        if ($json === false) {
+            throw new \RuntimeException('Failed to JSON-encode payload: ' . json_last_error_msg());
+        }
+
         $encryptedData = openssl_encrypt(
-            json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            $json,
             'AES-256-CBC',
             $aesKey,
             OPENSSL_RAW_DATA,
@@ -39,13 +44,11 @@ class Encryptor
         );
 
         if ($encryptedData === false) {
-            throw new \Exception('AES encrypt error: ' . openssl_error_string());
+            throw new \RuntimeException('AES encrypt error: ' . openssl_error_string());
         }
 
-        // 2. Prepare RSA payload (IMPORTANT: key.iv as RAW string)
         $rsaPayload = base64_encode($aesKey) . '.' . base64_encode($iv);
 
-        // 3. Load public key via phpseclib
         /** @var RSA $publicKey */
         $publicKey = PublicKeyLoader::load($this->publicKey);
 
@@ -56,10 +59,9 @@ class Encryptor
             ->encrypt($rsaPayload);
 
         if ($encryptedKeys === false) {
-            throw new \Exception('RSA encrypt failed');
+            throw new \RuntimeException('RSA encrypt failed');
         }
 
-        // 4. Return payload
         return [
             'encryptedData' => base64_encode($encryptedData),
             'encryptedKeys' => base64_encode($encryptedKeys),

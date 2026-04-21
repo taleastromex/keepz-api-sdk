@@ -17,20 +17,20 @@ class ApiGatewayTest extends TestCase
     private const BASE_URL   = 'https://gateway.dev.keepz.me/ecommerce-service';
     private const IDENTIFIER = 'test-integrator-id';
 
-    /** @var HttpClientInterface|MockObject */
+    /** @var HttpClientInterface&MockObject */
     private $http;
 
-    /** @var Encryptor|MockObject */
+    /** @var Encryptor&MockObject */
     private $encryptor;
 
-    /** @var Decryptor|MockObject */
+    /** @var Decryptor&MockObject */
     private $decryptor;
 
     protected function setUp(): void
     {
-        $this->http      = $this->createStub(HttpClientInterface::class);
-        $this->encryptor = $this->createStub(Encryptor::class);
-        $this->decryptor = $this->createStub(Decryptor::class);
+        $this->http      = $this->createMock(HttpClientInterface::class);
+        $this->encryptor = $this->createMock(Encryptor::class);
+        $this->decryptor = $this->createMock(Decryptor::class);
 
         $this->encryptor->method('encrypt')->willReturn($this->fakeEnvelope());
         $this->http->method('post')->willReturn($this->fakeEncryptedApiResponse());
@@ -55,7 +55,7 @@ class ApiGatewayTest extends TestCase
 
     public function testPostBuildsCorrectUrl(): void
     {
-        /** @var HttpClient&MockObject $http */
+        /** @var HttpClientInterface&MockObject $http */
         $http = $this->createMock(HttpClientInterface::class);
         $http->expects($this->once())
             ->method('post')
@@ -71,7 +71,7 @@ class ApiGatewayTest extends TestCase
         $envelope = $this->fakeEnvelope();
         $this->encryptor->method('encrypt')->willReturn($envelope);
 
-        /** @var HttpClient&MockObject $http */
+        /** @var HttpClientInterface&MockObject $http */
         $http = $this->createMock(HttpClientInterface::class);
         $http->expects($this->once())
             ->method('post')
@@ -106,7 +106,7 @@ class ApiGatewayTest extends TestCase
     {
         $plainData = ['integratorOrderId' => 'uuid', 'urlForQR' => 'https://x.com'];
 
-        $this->decryptor = $this->createStub(Decryptor::class);
+        $this->decryptor = $this->createMock(Decryptor::class);
         $this->decryptor->method('decrypt')->willReturn($plainData);
 
         $result = $this->makeGateway()->post('/api/integrator/order', []);
@@ -116,7 +116,7 @@ class ApiGatewayTest extends TestCase
 
     public function testPostThrowsApiExceptionOnErrorResponse(): void
     {
-        $this->http = $this->createStub(HttpClientInterface::class);
+        $this->http = $this->createMock(HttpClientInterface::class);
         $this->http->method('post')->willReturn(['message' => 'Forbidden', 'statusCode' => 403]);
 
         $this->expectException(ApiException::class);
@@ -127,7 +127,7 @@ class ApiGatewayTest extends TestCase
 
     public function testPostDoesNotCallDecryptorOnErrorResponse(): void
     {
-        $this->http = $this->createStub(HttpClientInterface::class);
+        $this->http = $this->createMock(HttpClientInterface::class);
         $this->http->method('post')->willReturn(['message' => 'Error', 'statusCode' => 500]);
 
         /** @var Decryptor&MockObject $decryptor */
@@ -148,7 +148,7 @@ class ApiGatewayTest extends TestCase
 
     public function testGetBuildsCorrectUrl(): void
     {
-        /** @var HttpClient&MockObject $http */
+        /** @var HttpClientInterface&MockObject $http */
         $http = $this->createMock(HttpClientInterface::class);
         $http->expects($this->once())
             ->method('get')
@@ -164,7 +164,7 @@ class ApiGatewayTest extends TestCase
         $envelope = $this->fakeEnvelope();
         $this->encryptor->method('encrypt')->willReturn($envelope);
 
-        /** @var HttpClient&MockObject $http */
+        /** @var HttpClientInterface&MockObject $http */
         $http = $this->createMock(HttpClientInterface::class);
         $http->expects($this->once())
             ->method('get')
@@ -199,7 +199,7 @@ class ApiGatewayTest extends TestCase
     {
         $plainData = ['integratorOrderId' => 'uuid', 'status' => 'SUCCESS'];
 
-        $this->decryptor = $this->createStub(Decryptor::class);
+        $this->decryptor = $this->createMock(Decryptor::class);
         $this->decryptor->method('decrypt')->willReturn($plainData);
 
         $result = $this->makeGateway()->get('/api/integrator/order/status', []);
@@ -209,7 +209,7 @@ class ApiGatewayTest extends TestCase
 
     public function testGetThrowsApiExceptionOnErrorResponse(): void
     {
-        $this->http = $this->createStub(HttpClientInterface::class);
+        $this->http = $this->createMock(HttpClientInterface::class);
         $this->http->method('get')->willReturn(['message' => 'Not found', 'statusCode' => 404]);
 
         $this->expectException(ApiException::class);

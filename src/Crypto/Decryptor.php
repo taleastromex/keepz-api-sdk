@@ -31,7 +31,10 @@ class Decryptor
      */
     public function decrypt(array $response): array
     {
-        if (!isset($response['encryptedData'], $response['encryptedKeys'])) {
+        $encryptedData = $response['encryptedData'] ?? null;
+        $encryptedKeys = $response['encryptedKeys'] ?? null;
+
+        if (!is_string($encryptedData) || !is_string($encryptedKeys)) {
             throw new \InvalidArgumentException('Response is missing encryptedData or encryptedKeys');
         }
 
@@ -43,7 +46,7 @@ class Decryptor
                 ->withPadding(RSA::ENCRYPTION_OAEP)
                 ->withHash('sha256')
                 ->withMGFHash('sha256')
-                ->decrypt(base64_decode((string) $response['encryptedKeys']));
+                ->decrypt(base64_decode($encryptedKeys));
         } catch (\Throwable $e) {
             throw new \RuntimeException('RSA decryption of encryptedKeys failed: ' . $e->getMessage(), 0, $e);
         }
@@ -54,10 +57,10 @@ class Decryptor
 
         [$aesKeyB64, $ivB64] = explode('.', $rsaPayload, 2);
         $aesKey = base64_decode($aesKeyB64);
-        $iv     = base64_decode($ivB64);
+        $iv = base64_decode($ivB64);
 
         $plaintext = openssl_decrypt(
-            base64_decode((string) $response['encryptedData']),
+            base64_decode($encryptedData),
             'AES-256-CBC',
             $aesKey,
             OPENSSL_RAW_DATA,
@@ -70,7 +73,7 @@ class Decryptor
 
         $decoded = json_decode($plaintext, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (!is_array($decoded)) {
             throw new \RuntimeException('JSON decode failed after decryption: ' . json_last_error_msg());
         }
 

@@ -21,8 +21,10 @@ class HttpClientTest extends TestCase
     public function testGetReturnsDecodedJsonResponse(): void
     {
         $expectedResponse = ['status' => 'ok', 'orderId' => 'abc-123'];
+        $json = json_encode($expectedResponse);
+        assert(is_string($json));
 
-        $this->mockCurl(json_encode($expectedResponse));
+        $this->mockCurl($json);
 
         $result = (new HttpClient())->get('https://example.com/resource');
 
@@ -114,8 +116,10 @@ class HttpClientTest extends TestCase
     public function testPostReturnsDecodedJsonResponse(): void
     {
         $expectedResponse = ['status' => 'ok', 'orderId' => 'abc-123'];
+        $json = json_encode($expectedResponse);
+        assert(is_string($json));
 
-        $this->mockCurl(json_encode($expectedResponse));
+        $this->mockCurl($json);
 
         $result = (new HttpClient())->post('https://example.com', ['amount' => 100]);
 
@@ -129,8 +133,10 @@ class HttpClientTest extends TestCase
             'encryptedKeys' => 'base64keys==',
             'aes'           => true,
         ];
+        $json = json_encode($expectedResponse);
+        assert(is_string($json));
 
-        $this->mockCurl(json_encode($expectedResponse));
+        $this->mockCurl($json);
 
         $result = (new HttpClient())->post('https://example.com', []);
 

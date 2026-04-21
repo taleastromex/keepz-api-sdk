@@ -25,13 +25,16 @@ final class OrderCreatedData
      */
     public static function fromArray(array $data): self
     {
-        if (!isset($data['integratorOrderId'], $data['urlForQR'])) {
+        $integratorOrderId = $data['integratorOrderId'] ?? null;
+        $urlForQR = $data['urlForQR'] ?? null;
+
+        if (!is_string($integratorOrderId) || !is_string($urlForQR)) {
             throw new \InvalidArgumentException(
                 'Response is missing required fields: integratorOrderId, urlForQR'
             );
         }
 
-        return new self((string) $data['integratorOrderId'], (string) $data['urlForQR']);
+        return new self($integratorOrderId, $urlForQR);
     }
 
     public function getIntegratorOrderId(): string

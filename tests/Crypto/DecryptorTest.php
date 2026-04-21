@@ -23,8 +23,16 @@ class DecryptorTest extends TestCase
             'private_key_type' => OPENSSL_KEYTYPE_RSA,
         ]);
 
+        if ($key === false) {
+            static::fail('Failed to generate RSA key pair');
+        }
+
         openssl_pkey_export($key, $privateKeyPem);
         $details = openssl_pkey_get_details($key);
+
+        if ($details === false) {
+            static::fail('Failed to read RSA key details');
+        }
 
         self::$privateKey = $privateKeyPem;
         self::$publicKey  = $details['key'];

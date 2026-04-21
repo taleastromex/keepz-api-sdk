@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace KeepzSdk\Http;
 
-class HttpClient implements HttpClientInterface
+final class HttpClient implements HttpClientInterface
 {
     /**
-     * @param string $url
      * @param array<string, mixed> $query
      * @return array<string, mixed>
      */
@@ -28,11 +27,10 @@ class HttpClient implements HttpClientInterface
 
         $response = curl_exec($ch);
 
-        return json_decode($response, true);
+        return $this->decodeResponse($response);
     }
 
     /**
-     * @param string $url
      * @param array<string, mixed> $data
      * @return array<string, mixed>
      */
@@ -42,15 +40,34 @@ class HttpClient implements HttpClientInterface
 
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json'
+            CURLOPT_POST           => true,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
             ],
-            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_POSTFIELDS     => json_encode($data),
         ]);
 
         $response = curl_exec($ch);
 
-        return json_decode($response, true);
+        return $this->decodeResponse($response);
+    }
+
+    /**
+     * @param string|bool $response
+     * @return array<string, mixed>
+     */
+    private function decodeResponse($response): array
+    {
+        if (!is_string($response)) {
+            throw new \RuntimeException('cURL request failed: ' . curl_error(curl_init()));
+        }
+
+        $decoded = json_decode($response, true);
+
+        if (!is_array($decoded)) {
+            throw new \RuntimeException('Failed to decode API response as JSON');
+        }
+
+        return $decoded;
     }
 }

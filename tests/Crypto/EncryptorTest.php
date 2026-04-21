@@ -24,11 +24,19 @@ class EncryptorTest extends TestCase
             'private_key_type' => OPENSSL_KEYTYPE_RSA,
         ]);
 
+        if ($key === false) {
+            static::fail('Failed to generate RSA key pair');
+        }
+
         openssl_pkey_export($key, $privateKeyPem);
         $details = openssl_pkey_get_details($key);
 
+        if ($details === false) {
+            static::fail('Failed to read RSA key details');
+        }
+
         self::$privateKey = $privateKeyPem;
-        self::$publicKey = $details['key'];
+        self::$publicKey  = $details['key'];
     }
 
     private function makeEncryptor(): Encryptor
@@ -64,7 +72,9 @@ class EncryptorTest extends TestCase
     {
         $result = $this->makeEncryptor()->encrypt(['amount' => 100]);
 
-        $decoded = base64_decode($result['encryptedData'], true);
+        $encryptedData = $result['encryptedData'];
+        assert(is_string($encryptedData));
+        $decoded = base64_decode($encryptedData, true);
         $this->assertNotFalse($decoded, 'encryptedData is not valid base64');
         $this->assertNotEmpty($decoded);
     }
@@ -73,7 +83,9 @@ class EncryptorTest extends TestCase
     {
         $result = $this->makeEncryptor()->encrypt(['amount' => 100]);
 
-        $decoded = base64_decode($result['encryptedKeys'], true);
+        $encryptedKeys = $result['encryptedKeys'];
+        assert(is_string($encryptedKeys));
+        $decoded = base64_decode($encryptedKeys, true);
         $this->assertNotFalse($decoded, 'encryptedKeys is not valid base64');
         $this->assertNotEmpty($decoded);
     }
@@ -109,11 +121,13 @@ class EncryptorTest extends TestCase
         // 1. Decrypt encryptedKeys with the RSA private key to recover AES key+IV
         /** @var RSA $privateKey */
         $privateKey = PublicKeyLoader::load(self::$privateKey);
+        $encryptedKeys = $result['encryptedKeys'];
+        assert(is_string($encryptedKeys));
         $rsaPayload = $privateKey
             ->withPadding(RSA::ENCRYPTION_OAEP)
             ->withHash('sha256')
             ->withMGFHash('sha256')
-            ->decrypt(base64_decode($result['encryptedKeys']));
+            ->decrypt(base64_decode($encryptedKeys));
 
         $this->assertNotFalse($rsaPayload, 'RSA decryption of encryptedKeys failed');
 
@@ -122,8 +136,10 @@ class EncryptorTest extends TestCase
         $iv = base64_decode($ivB64);
 
         // 2. Decrypt encryptedData with the recovered AES key+IV
+        $encryptedData = $result['encryptedData'];
+        assert(is_string($encryptedData));
         $plaintext = openssl_decrypt(
-            base64_decode($result['encryptedData']),
+            base64_decode($encryptedData),
             'AES-256-CBC',
             $aesKey,
             OPENSSL_RAW_DATA,
