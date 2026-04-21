@@ -8,34 +8,51 @@ PHP SDK for the [Keepz](https://www.developers.keepz.me) eCommerce payment API.
 use KeepzSdk\Client;
 use KeepzSdk\Http\HttpClient;
 use KeepzSdk\Crypto\Encryptor;
+use KeepzSdk\Crypto\Decryptor;
 
-$publicKey = "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----";
+$publicKey  = "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----";
+$privateKey = "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----";
 
 $client = new Client(
     'https://gateway.dev.keepz.me/ecommerce-service',
     'your-integrator-id',   // provided by Keepz
     new HttpClient(),
-    new Encryptor($publicKey)
+    new Encryptor($publicKey),
+    new Decryptor($privateKey)
 );
 ```
 
-All credentials (`integratorId`, `receiverId`, RSA public key) are provided by Keepz during onboarding.
+All credentials (`integratorId`, `receiverId`, RSA key pair) are provided by Keepz during onboarding.
+
+The SDK encrypts every outgoing request with RSA + AES automatically, and decrypts every successful response before returning it. You always work with plain PHP arrays — encryption is invisible.
 
 ---
 
 ## Create an order
 
 ```php
-$response = $client->orders()->create([
-    'amount'            => 100,
-    'receiverId'        => 'uuid-provided-by-keepz',
-    'receiverType'      => 'BRANCH',
-    'integratorId'      => 'your-integrator-id',
-    'integratorOrderId' => 'your-unique-order-uuid',
-]);
+use KeepzSdk\Exceptions\ApiException;
+
+try {
+    $order = $client->orders()->create([
+        'amount'            => 100,
+        'receiverId'        => 'uuid-provided-by-keepz',
+        'receiverType'      => 'BRANCH',
+        'integratorId'      => 'your-integrator-id',
+        'integratorOrderId' => 'your-unique-order-uuid',
+    ]);
+
+    $order->getIntegratorOrderId(); // 'your-unique-order-uuid'
+    $order->getUrlForQR();          // 'https://...' — show this to the customer
+} catch (ApiException $e) {
+    $e->getMessage();        // human-readable error from Keepz
+    $e->getStatusCode();     // e.g. 6031
+    $e->getExceptionGroup(); // e.g. 3
+    $e->getRawResponse();    // full response array as received from the API
+}
 ```
 
-The payload is encrypted automatically before sending. On success the response contains `encryptedData` (decrypt to get `integratorOrderId` and `urlForQR`) and on error a plain JSON with `message`, `statusCode`, and `exceptionGroup`.
+On success `create()` returns an `OrderCreatedData` object. On any API error it throws `ApiException` — decryption is never attempted on error responses.
 
 ### Optional fields
 
@@ -112,7 +129,7 @@ $client->orders()->create([
 Use the dedicated `createSplit()` method, passing the base order data and the distributions as separate arguments:
 
 ```php
-$client->orders()->createSplit(
+$order = $client->orders()->createSplit(
     [
         'amount'            => 100,
         'receiverId'        => 'uuid-provided-by-keepz',
@@ -125,6 +142,30 @@ $client->orders()->createSplit(
         ['receiverType' => 'IBAN',   'receiverIdentifier' => 'GE34BG0000001234567890', 'amount' => 25],
     ]
 );
+
+$order->getUrlForQR(); // show to the customer
 ```
 
 `receiverType` per distribution can be `BRANCH`, `USER`, or `IBAN`.
+
+---
+
+## Error handling
+
+All API errors are thrown as `KeepzSdk\Exceptions\ApiException` before any decryption is attempted:
+
+```php
+use KeepzSdk\Exceptions\ApiException;
+
+try {
+    $order = $client->orders()->create([...]);
+} catch (ApiException $e) {
+    // Log or handle the API-level error
+    error_log(sprintf(
+        'Keepz error %d (group %d): %s',
+        $e->getStatusCode(),
+        $e->getExceptionGroup(),
+        $e->getMessage()
+    ));
+}
+```
