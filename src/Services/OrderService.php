@@ -74,4 +74,25 @@ class OrderService
             ])
         );
     }
+
+    /**
+     * Initiates a refund for a completed order.
+     *
+     * Required fields in $data: integratorId, integratorOrderId, amount.
+     * Optional fields: refundInitiator (INTEGRATOR|OPERATOR), refundDetails (split breakdown).
+     *
+     * The response always carries status REFUND_REQUESTED — the final outcome
+     * (REFUNDED_BY_INTEGRATOR, PARTIALLY_REFUNDED, REFUNDED_FAILED) is resolved
+     * asynchronously; use getOrderStatus() to poll for it.
+     *
+     * @param array<string, mixed> $data
+     * @return OrderStatusData
+     * @throws ApiException
+     */
+    public function refund(array $data): OrderStatusData
+    {
+        return OrderStatusData::fromArray(
+            $this->gateway->post('/api/integrator/order/refund/v2', $data)
+        );
+    }
 }
