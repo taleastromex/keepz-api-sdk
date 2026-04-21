@@ -8,6 +8,7 @@ use KeepzSdk\Crypto\Decryptor;
 use KeepzSdk\Crypto\Encryptor;
 use KeepzSdk\Http\ApiGateway;
 use KeepzSdk\Http\HttpClient;
+use KeepzSdk\Services\CardService;
 use KeepzSdk\Services\OrderService;
 
 class Client
@@ -41,5 +42,10 @@ class Client
     public function orders(): OrderService
     {
         return new OrderService($this->gateway);
+    }
+
+    public function cards(): CardService
+    {
+        return new CardService($this->gateway);
     }
 }

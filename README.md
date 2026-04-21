@@ -14,6 +14,7 @@ PHP SDK for the [Keepz](https://www.developers.keepz.me) eCommerce payment API.
 - [Refund Order](#refund-order)
   - [Simple refund](#simple-refund)
   - [Refund with split breakdown](#refund-with-split-breakdown)
+- [Get Saved Card](#get-saved-card)
 - [Error handling](#error-handling)
 
 ## Setup
@@ -250,6 +251,44 @@ $result = $client->orders()->refund([
 ```
 
 Each entry in `refundDetails` must have `receiverType`, `receiverIdentifier`, and `amount` (> 0). The sum of all `amount` values must not exceed the original transaction amount.
+
+---
+
+## Get Saved Card
+
+Use `cards()->getSavedCard()` to retrieve tokenized card information after a customer has completed a payment with card-saving enabled.
+
+> **Note:** The `integratorOrderId` must correspond to an order where `saveCard: true` was passed at creation time and the payment was completed successfully.
+
+```php
+use KeepzSdk\Exceptions\ApiException;
+
+try {
+    $card = $client->cards()->getSavedCard('your-unique-order-uuid');
+
+    $card->getToken();          // 'uuid' — reuse as cardToken in future orders
+    $card->getProvider();       // 'CREDO'
+    $card->getCardMask();       // '411111******1111'
+    $card->getExpirationDate(); // '12/27'
+    $card->getCardBrand();      // 'VISA'
+} catch (ApiException $e) {
+    $e->getMessage();    // e.g. 'Integrator card not found'
+    $e->getStatusCode(); // e.g. 6075
+}
+```
+
+The `token` returned can be passed directly as `cardToken` when creating a new order to charge the saved card without requiring the customer to re-enter their details:
+
+```php
+$client->orders()->create([
+    'amount'            => 50,
+    'receiverId'        => 'uuid-provided-by-keepz',
+    'receiverType'      => 'BRANCH',
+    'integratorId'      => 'your-integrator-id',
+    'integratorOrderId' => 'new-unique-order-uuid',
+    'cardToken'         => $card->getToken(),
+]);
+```
 
 ---
 
