@@ -7,7 +7,7 @@ namespace KeepzSdk\Crypto;
 use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Crypt\RSA;
 
-class Decryptor
+final class Decryptor
 {
     /** @var string */
     private $privateKey;

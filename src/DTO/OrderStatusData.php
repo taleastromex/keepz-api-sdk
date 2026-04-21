@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace KeepzSdk\DTO;
 
-final class OrderCreatedData
+final class OrderStatusData
 {
     /** @var string */
     private $integratorOrderId;
 
     /** @var string */
-    private $urlForQR;
+    private $status;
 
     public function __construct(
         string $integratorOrderId,
-        string $urlForQR
+        string $status
     ) {
         $this->integratorOrderId = $integratorOrderId;
-        $this->urlForQR = $urlForQR;
+        $this->status = $status;
     }
 
     /**
@@ -25,13 +25,13 @@ final class OrderCreatedData
      */
     public static function fromArray(array $data): self
     {
-        if (!isset($data['integratorOrderId'], $data['urlForQR'])) {
+        if (!isset($data['integratorOrderId'], $data['status'])) {
             throw new \InvalidArgumentException(
-                'Response is missing required fields: integratorOrderId, urlForQR'
+                'Response is missing required fields: integratorOrderId, status'
             );
         }
 
-        return new self((string) $data['integratorOrderId'], (string) $data['urlForQR']);
+        return new self((string) $data['integratorOrderId'], (string) $data['status']);
     }
 
     public function getIntegratorOrderId(): string
@@ -39,9 +39,9 @@ final class OrderCreatedData
         return $this->integratorOrderId;
     }
 
-    public function getUrlForQR(): string
+    public function getStatus(): string
     {
-        return $this->urlForQR;
+        return $this->status;
     }
 
     /**
@@ -51,7 +51,7 @@ final class OrderCreatedData
     {
         return [
             'integrator_order_id' => $this->integratorOrderId,
-            'url_for_qr' => $this->urlForQR,
+            'status' => $this->status,
         ];
     }
 }

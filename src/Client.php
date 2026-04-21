@@ -4,76 +4,42 @@ declare(strict_types=1);
 
 namespace KeepzSdk;
 
-use KeepzSdk\Http\HttpClient;
 use KeepzSdk\Crypto\Decryptor;
 use KeepzSdk\Crypto\Encryptor;
+use KeepzSdk\Http\ApiGateway;
+use KeepzSdk\Http\HttpClient;
 use KeepzSdk\Services\OrderService;
 
 class Client
 {
-    /** @var string */
-    private $baseUrl;
+    /** @var ApiGateway */
+    private $gateway;
 
-    /** @var string */
-    private $identifier;
-
-    /** @var HttpClient */
-    private $http;
-
-    /** @var Encryptor */
-    private $encryptor;
-
-    /** @var Decryptor */
-    private $decryptor;
+    public function __construct(ApiGateway $gateway)
+    {
+        $this->gateway = $gateway;
+    }
 
     /**
-     * @param string $baseUrl
-     * @param string $identifier
-     * @param HttpClient $http
-     * @param Encryptor $encryptor
-     * @param Decryptor $decryptor
+     * Convenience factory — assembles all internal dependencies from raw credentials.
      */
-    public function __construct(
+    public static function create(
         string $baseUrl,
         string $identifier,
-        HttpClient $http,
-        Encryptor $encryptor,
-        Decryptor $decryptor
-    ) {
-        $this->baseUrl = $baseUrl;
-        $this->identifier = $identifier;
-        $this->http = $http;
-        $this->encryptor = $encryptor;
-        $this->decryptor = $decryptor;
+        string $publicKey,
+        string $privateKey
+    ): self {
+        return new self(new ApiGateway(
+            $baseUrl,
+            $identifier,
+            new HttpClient(),
+            new Encryptor($publicKey),
+            new Decryptor($privateKey)
+        ));
     }
 
     public function orders(): OrderService
     {
-        return new OrderService($this);
-    }
-
-    public function getBaseUrl(): string
-    {
-        return $this->baseUrl;
-    }
-
-    public function getIdentifier(): string
-    {
-        return $this->identifier;
-    }
-
-    public function getHttp(): HttpClient
-    {
-        return $this->http;
-    }
-
-    public function getEncryptor(): Encryptor
-    {
-        return $this->encryptor;
-    }
-
-    public function getDecryptor(): Decryptor
-    {
-        return $this->decryptor;
+        return new OrderService($this->gateway);
     }
 }

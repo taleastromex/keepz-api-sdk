@@ -15,7 +15,100 @@ class HttpClientTest extends TestCase
     private const NAMESPACE = 'KeepzSdk\Http';
 
     // -------------------------------------------------------------------------
-    // Response decoding
+    // GET — response decoding
+    // -------------------------------------------------------------------------
+
+    public function testGetReturnsDecodedJsonResponse(): void
+    {
+        $expectedResponse = ['status' => 'ok', 'orderId' => 'abc-123'];
+
+        $this->mockCurl(json_encode($expectedResponse));
+
+        $result = (new HttpClient())->get('https://example.com/resource');
+
+        $this->assertSame($expectedResponse, $result);
+    }
+
+    public function testGetAppendsQueryStringToUrl(): void
+    {
+        $curlInit = $this->getFunctionMock(self::NAMESPACE, 'curl_init');
+        $curlInit->expects($this->once())
+            ->willReturnCallback(function (string $url): mixed {
+                $this->assertSame('https://example.com/resource?foo=bar&page=2', $url);
+                return curl_init();
+            });
+
+        $curlSetopt = $this->getFunctionMock(self::NAMESPACE, 'curl_setopt_array');
+        $curlSetopt->expects($this->once())->willReturn(true);
+
+        $curlExec = $this->getFunctionMock(self::NAMESPACE, 'curl_exec');
+        $curlExec->expects($this->once())->willReturn('{}');
+
+        (new HttpClient())->get('https://example.com/resource', ['foo' => 'bar', 'page' => 2]);
+    }
+
+    public function testGetWithNoQueryDoesNotAppendQuestionMark(): void
+    {
+        $curlInit = $this->getFunctionMock(self::NAMESPACE, 'curl_init');
+        $curlInit->expects($this->once())
+            ->willReturnCallback(function (string $url): mixed {
+                $this->assertSame('https://example.com/resource', $url);
+                return curl_init();
+            });
+
+        $curlSetopt = $this->getFunctionMock(self::NAMESPACE, 'curl_setopt_array');
+        $curlSetopt->expects($this->once())->willReturn(true);
+
+        $curlExec = $this->getFunctionMock(self::NAMESPACE, 'curl_exec');
+        $curlExec->expects($this->once())->willReturn('{}');
+
+        (new HttpClient())->get('https://example.com/resource');
+    }
+
+    public function testGetSetsAcceptJsonHeader(): void
+    {
+        $curlSetopt = $this->getFunctionMock(self::NAMESPACE, 'curl_setopt_array');
+        $curlSetopt->expects($this->once())
+            ->willReturnCallback(function ($ch, array $options): bool {
+                $this->assertContains('Accept: application/json', $options[CURLOPT_HTTPHEADER]);
+                return true;
+            });
+
+        $this->mockCurlInitAndExec('{}');
+
+        (new HttpClient())->get('https://example.com/resource');
+    }
+
+    public function testGetDoesNotSetCurlPostFlag(): void
+    {
+        $curlSetopt = $this->getFunctionMock(self::NAMESPACE, 'curl_setopt_array');
+        $curlSetopt->expects($this->once())
+            ->willReturnCallback(function ($ch, array $options): bool {
+                $this->assertArrayNotHasKey(CURLOPT_POST, $options);
+                return true;
+            });
+
+        $this->mockCurlInitAndExec('{}');
+
+        (new HttpClient())->get('https://example.com/resource');
+    }
+
+    public function testGetEnablesReturnTransfer(): void
+    {
+        $curlSetopt = $this->getFunctionMock(self::NAMESPACE, 'curl_setopt_array');
+        $curlSetopt->expects($this->once())
+            ->willReturnCallback(function ($ch, array $options): bool {
+                $this->assertTrue((bool) $options[CURLOPT_RETURNTRANSFER]);
+                return true;
+            });
+
+        $this->mockCurlInitAndExec('{}');
+
+        (new HttpClient())->get('https://example.com/resource');
+    }
+
+    // -------------------------------------------------------------------------
+    // POST — response decoding
     // -------------------------------------------------------------------------
 
     public function testPostReturnsDecodedJsonResponse(): void

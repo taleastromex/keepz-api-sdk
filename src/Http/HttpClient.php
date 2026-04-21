@@ -4,8 +4,33 @@ declare(strict_types=1);
 
 namespace KeepzSdk\Http;
 
-class HttpClient
+final class HttpClient implements HttpClientInterface
 {
+    /**
+     * @param string $url
+     * @param array<string, mixed> $query
+     * @return array<string, mixed>
+     */
+    public function get(string $url, array $query = []): array
+    {
+        if (!empty($query)) {
+            $url .= '?' . http_build_query($query);
+        }
+
+        $ch = curl_init($url);
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => [
+                'Accept: application/json',
+            ],
+        ]);
+
+        $response = curl_exec($ch);
+
+        return json_decode($response, true);
+    }
+
     /**
      * @param string $url
      * @param array<string, mixed> $data
