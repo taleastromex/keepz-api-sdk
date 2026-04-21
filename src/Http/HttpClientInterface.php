@@ -17,4 +17,10 @@ interface HttpClientInterface
      * @return array<string, mixed>
      */
     public function post(string $url, array $data): array;
+
+    /**
+     * @param array<string, mixed> $query
+     * @return array<string, mixed>
+     */
+    public function delete(string $url, array $query = []): array;
 }

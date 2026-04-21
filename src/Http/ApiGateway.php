@@ -59,6 +59,28 @@ class ApiGateway
     }
 
     /**
+     * Encrypts $data, sends a DELETE request with params in the query string,
+     * validates and decrypts the response.
+     *
+     * Per Keepz API spec, identifier + encrypted payload are passed as query parameters.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     * @throws ApiException
+     */
+    public function delete(string $path, array $data): array
+    {
+        $encrypted = $this->encryptor->encrypt($data);
+
+        $response = $this->http->delete(
+            $this->baseUrl . $path,
+            array_merge(['identifier' => $this->identifier, 'aes' => true], $encrypted)
+        );
+
+        return $this->handleResponse($response);
+    }
+
+    /**
      * Encrypts $query, sends a GET request, validates and decrypts the response.
      *
      * @param array<string, mixed> $query
@@ -71,7 +93,7 @@ class ApiGateway
 
         $response = $this->http->get(
             $this->baseUrl . $path,
-            array_merge(['identifier' => $this->identifier, 'aes' => true], $encrypted)
+            array_merge(['identifier' => $this->identifier], $encrypted)
         );
 
         return $this->handleResponse($response);

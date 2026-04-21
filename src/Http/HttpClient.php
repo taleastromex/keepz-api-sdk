@@ -53,6 +53,31 @@ final class HttpClient implements HttpClientInterface
     }
 
     /**
+     * @param array<string, mixed> $query
+     * @return array<string, mixed>
+     */
+    public function delete(string $url, array $query = []): array
+    {
+        /**
+         * @see documentation https://www.developers.keepz.me/eCommerece%20integration/cancel_order#request-details
+         */
+        if (!empty($query)) {
+            $url .= '?' . http_build_query($query);
+        }
+
+        $ch = curl_init($url);
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST  => 'DELETE',
+        ]);
+
+        $response = curl_exec($ch);
+
+        return $this->decodeResponse($response);
+    }
+
+    /**
      * @param string|bool $response
      * @return array<string, mixed>
      */
