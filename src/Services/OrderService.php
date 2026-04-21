@@ -4,61 +4,54 @@ declare(strict_types=1);
 
 namespace KeepzSdk\Services;
 
-use KeepzSdk\Client;
-use KeepzSdk\Exceptions\ApiException;
 use KeepzSdk\DTO\OrderCreatedData;
+use KeepzSdk\DTO\OrderStatusData;
+use KeepzSdk\Exceptions\ApiException;
+use KeepzSdk\Http\ApiGateway;
 
 class OrderService
 {
-    /** @var Client */
-    private $client;
+    /** @var ApiGateway */
+    private $gateway;
 
-    /**
-     * @param Client $client
-     */
-    public function __construct(Client $client)
+    public function __construct(ApiGateway $gateway)
     {
-        $this->client = $client;
+        $this->gateway = $gateway;
     }
 
     /**
      * @param array<string, mixed> $data
-     * @return OrderCreatedData
-     * @throws \Exception|ApiException
+     * @throws ApiException
      */
     public function create(array $data): OrderCreatedData
     {
-        $encrypted = $this->client->getEncryptor()->encrypt($data);
-
-        $response = $this->client->getHttp()->post(
-            $this->client->getBaseUrl() . '/api/integrator/order',
-            array_merge([
-                'identifier' => $this->client->getIdentifier(),
-            ], $encrypted)
-        );
-
-        if (empty($response['aes'])) {
-            throw new ApiException($response);
-        }
-
-        $decrypted = $this->client->getDecryptor()->decrypt($response);
-
-        return new OrderCreatedData(
-            $decrypted['integratorOrderId'],
-            $decrypted['urlForQR'],
+        return OrderCreatedData::fromArray(
+            $this->gateway->post('/api/integrator/order', $data)
         );
     }
 
     /**
      * @param array<string, mixed> $orderData
      * @param array<int, array<string, mixed>> $distributions
-     * @return OrderCreatedData
-     * @throws \Exception|ApiException
+     * @throws ApiException
      */
     public function createSplit(array $orderData, array $distributions): OrderCreatedData
     {
         $orderData['splitDetails'] = $distributions;
 
         return $this->create($orderData);
+    }
+
+    /**
+     * @throws ApiException
+     */
+    public function getOrderStatus(string $integratorId, string $integratorOrderId): OrderStatusData
+    {
+        return OrderStatusData::fromArray(
+            $this->gateway->get('/api/integrator/order/status', [
+                'integratorId' => $integratorId,
+                'integratorOrderId' => $integratorOrderId,
+            ])
+        );
     }
 }

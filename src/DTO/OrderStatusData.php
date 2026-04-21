@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace KeepzSdk\DTO;
 
-final class OrderCreatedData
+final class OrderStatusData
 {
     /** @var string */
     private $integratorOrderId;
 
     /** @var string */
-    private $urlForQR;
+    private $status;
 
     public function __construct(
         string $integratorOrderId,
-        string $urlForQR
+        string $status
     ) {
         $this->integratorOrderId = $integratorOrderId;
-        $this->urlForQR = $urlForQR;
+        $this->status = $status;
     }
 
     /**
@@ -26,15 +26,15 @@ final class OrderCreatedData
     public static function fromArray(array $data): self
     {
         $integratorOrderId = $data['integratorOrderId'] ?? null;
-        $urlForQR = $data['urlForQR'] ?? null;
+        $status = $data['status'] ?? null;
 
-        if (!is_string($integratorOrderId) || !is_string($urlForQR)) {
+        if (!is_string($integratorOrderId) || !is_string($status)) {
             throw new \InvalidArgumentException(
-                'Response is missing required fields: integratorOrderId, urlForQR'
+                'Response is missing required fields: integratorOrderId, status'
             );
         }
 
-        return new self($integratorOrderId, $urlForQR);
+        return new self($integratorOrderId, $status);
     }
 
     public function getIntegratorOrderId(): string
@@ -42,9 +42,9 @@ final class OrderCreatedData
         return $this->integratorOrderId;
     }
 
-    public function getUrlForQR(): string
+    public function getStatus(): string
     {
-        return $this->urlForQR;
+        return $this->status;
     }
 
     /**
@@ -54,7 +54,7 @@ final class OrderCreatedData
     {
         return [
             'integrator_order_id' => $this->integratorOrderId,
-            'url_for_qr' => $this->urlForQR,
+            'status' => $this->status,
         ];
     }
 }
