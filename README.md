@@ -11,6 +11,9 @@ PHP SDK for the [Keepz](https://www.developers.keepz.me) eCommerce payment API.
   - [Split payment](#split-payment)
 - [Get Order Status](#get-order-status)
 - [Cancel Order](#cancel-order)
+- [Refund Order](#refund-order)
+  - [Simple refund](#simple-refund)
+  - [Refund with split breakdown](#refund-with-split-breakdown)
 - [Error handling](#error-handling)
 
 ## Setup
@@ -182,6 +185,71 @@ $order->getIntegratorOrderId(); // 'your-unique-order-uuid'
 $order->getStatus(); // Order Status (CANCELED)
 
 ```
+
+---
+
+## Refund Order
+
+Use `refund()` to initiate a return of funds to the payer. Refunds are only possible when the order status is `SUCCESS`, `PARTIALLY_REFUNDED`, or `REFUNDED_FAILED`, and only if your integrator account has refund functionality enabled by Keepz.
+
+> **Note:** The API responds immediately with `REFUND_REQUESTED`. The final outcome (`REFUNDED_BY_INTEGRATOR`, `PARTIALLY_REFUNDED`, `REFUNDED_FAILED`) is resolved asynchronously — use `getOrderStatus()` to poll for the final status.
+
+### Simple refund
+
+```php
+use KeepzSdk\Exceptions\ApiException;
+
+try {
+    $result = $client->orders()->refund([
+        'integratorId'      => 'your-integrator-id',      // UUID provided by Keepz
+        'integratorOrderId' => 'your-unique-order-uuid',  // the order you want to refund
+        'amount'            => 50.00,                     // must be ≤ original transaction amount
+    ]);
+
+    $result->getIntegratorOrderId(); // 'your-unique-order-uuid'
+    $result->getStatus();            // 'REFUND_REQUESTED'
+} catch (ApiException $e) {
+    $e->getMessage();    // e.g. "You can't refund order: Order is already fully refunded"
+    $e->getStatusCode(); // e.g. 6005
+}
+```
+
+Optionally, pass `refundInitiator` to specify who is triggering the refund:
+
+```php
+$client->orders()->refund([
+    'integratorId'      => 'your-integrator-id',
+    'integratorOrderId' => 'your-unique-order-uuid',
+    'amount'            => 50.00,
+    'refundInitiator'   => 'INTEGRATOR', // INTEGRATOR | OPERATOR
+]);
+```
+
+### Refund with split breakdown
+
+When the original payment was a split payment, you can distribute the refunded amount among specific recipients using `refundDetails`:
+
+```php
+$result = $client->orders()->refund([
+    'integratorId'      => 'your-integrator-id',
+    'integratorOrderId' => 'your-unique-order-uuid',
+    'amount'            => 100,
+    'refundDetails'     => [
+        [
+            'receiverType'       => 'BRANCH',                    // BRANCH | USER | IBAN
+            'receiverIdentifier' => 'branch-uuid',               // UUID for BRANCH/USER, IBAN string for IBAN
+            'amount'             => 75,
+        ],
+        [
+            'receiverType'       => 'IBAN',
+            'receiverIdentifier' => 'GE34BG0000001234567890',
+            'amount'             => 25,
+        ],
+    ],
+]);
+```
+
+Each entry in `refundDetails` must have `receiverType`, `receiverIdentifier`, and `amount` (> 0). The sum of all `amount` values must not exceed the original transaction amount.
 
 ---
 

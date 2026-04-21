@@ -180,6 +180,96 @@ class OrderServiceTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // refund()
+    // -------------------------------------------------------------------------
+
+    public function testRefundPostsToCorrectPath(): void
+    {
+        /** @var ApiGateway&MockObject $gateway */
+        $gateway = $this->createMock(ApiGateway::class);
+        $gateway->expects($this->once())
+            ->method('post')
+            ->with('/api/integrator/order/refund/v2', $this->anything())
+            ->willReturn($this->fakeRefundResponse());
+
+        (new OrderService($gateway))->refund($this->minimalRefund());
+    }
+
+    public function testRefundForwardsPayloadToGateway(): void
+    {
+        $payload = $this->minimalRefund();
+
+        /** @var ApiGateway&MockObject $gateway */
+        $gateway = $this->createMock(ApiGateway::class);
+        $gateway->expects($this->once())
+            ->method('post')
+            ->with($this->anything(), $payload)
+            ->willReturn($this->fakeRefundResponse());
+
+        (new OrderService($gateway))->refund($payload);
+    }
+
+    public function testRefundReturnsOrderStatusDataWithRefundRequestedStatus(): void
+    {
+        /** @var ApiGateway&MockObject $gateway */
+        $gateway = $this->createStub(ApiGateway::class);
+        $gateway->method('post')->willReturn($this->fakeRefundResponse());
+
+        $result = (new OrderService($gateway))->refund($this->minimalRefund());
+
+        $this->assertInstanceOf(OrderStatusData::class, $result);
+        $this->assertSame('order-uuid-123', $result->getIntegratorOrderId());
+        $this->assertSame('REFUND_REQUESTED', $result->getStatus());
+    }
+
+    public function testRefundWithOptionalRefundInitiator(): void
+    {
+        $payload = array_merge($this->minimalRefund(), ['refundInitiator' => 'INTEGRATOR']);
+
+        /** @var ApiGateway&MockObject $gateway */
+        $gateway = $this->createMock(ApiGateway::class);
+        $gateway->expects($this->once())
+            ->method('post')
+            ->with($this->anything(), $payload)
+            ->willReturn($this->fakeRefundResponse());
+
+        (new OrderService($gateway))->refund($payload);
+    }
+
+    public function testRefundWithSplitRefundDetails(): void
+    {
+        $payload = array_merge($this->minimalRefund(), [
+            'refundDetails' => [
+                ['receiverType' => 'BRANCH', 'receiverIdentifier' => 'branch-uuid', 'amount' => 60],
+                ['receiverType' => 'IBAN',   'receiverIdentifier' => 'GE34BG0000001234567890', 'amount' => 40],
+            ],
+        ]);
+
+        /** @var ApiGateway&MockObject $gateway */
+        $gateway = $this->createMock(ApiGateway::class);
+        $gateway->expects($this->once())
+            ->method('post')
+            ->with($this->anything(), $payload)
+            ->willReturn($this->fakeRefundResponse());
+
+        (new OrderService($gateway))->refund($payload);
+    }
+
+    public function testRefundPropagatesApiException(): void
+    {
+        /** @var ApiGateway&MockObject $gateway */
+        $gateway = $this->createStub(ApiGateway::class);
+        $gateway->method('post')->willThrowException(
+            new ApiException(['message' => "You can't refund order: Order is already fully refunded", 'statusCode' => 6005])
+        );
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionCode(6005);
+
+        (new OrderService($gateway))->refund($this->minimalRefund());
+    }
+
+    // -------------------------------------------------------------------------
     // cancel()
     // -------------------------------------------------------------------------
 
@@ -277,6 +367,25 @@ class OrderServiceTest extends TestCase
         return [
             'integratorOrderId' => 'order-id',
             'status'            => 'CANCELLED',
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function fakeRefundResponse(): array
+    {
+        return [
+            'integratorOrderId' => 'order-uuid-123',
+            'status'            => 'REFUND_REQUESTED',
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function minimalRefund(): array
+    {
+        return [
+            'integratorId'      => 'integrator-uuid',
+            'integratorOrderId' => 'order-uuid-123',
+            'amount'            => 100,
         ];
     }
 }
