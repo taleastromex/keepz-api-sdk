@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace KeepzSdk\Http;
 
-final class HttpClient implements HttpClientInterface
+class HttpClient implements HttpClientInterface
 {
     /**
      * @param string $url
