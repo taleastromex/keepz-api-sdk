@@ -57,47 +57,25 @@ class DecryptorTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Pass-through for non-encrypted responses
+    // Guard — missing required fields
     // -------------------------------------------------------------------------
 
-    public function testDecryptPassesThroughWhenNoAesFlag(): void
+    public function testDecryptThrowsWhenEncryptedDataMissing(): void
     {
-        $errorResponse = ['message' => 'Permission denied', 'statusCode' => 6031];
+        $this->expectException(\InvalidArgumentException::class);
 
-        $result = $this->makeDecryptor()->decrypt($errorResponse);
-
-        $this->assertSame($errorResponse, $result);
+        $this->makeDecryptor()->decrypt(['encryptedKeys' => 'def', 'aes' => true]);
     }
 
-    public function testDecryptPassesThroughWhenAesIsFalse(): void
+    public function testDecryptThrowsWhenEncryptedKeysMissing(): void
     {
-        $response = ['encryptedData' => 'abc', 'encryptedKeys' => 'def', 'aes' => false];
+        $this->expectException(\InvalidArgumentException::class);
 
-        $result = $this->makeDecryptor()->decrypt($response);
-
-        $this->assertSame($response, $result);
-    }
-
-    public function testDecryptPassesThroughWhenEncryptedDataMissing(): void
-    {
-        $response = ['encryptedKeys' => 'def', 'aes' => true];
-
-        $result = $this->makeDecryptor()->decrypt($response);
-
-        $this->assertSame($response, $result);
-    }
-
-    public function testDecryptPassesThroughWhenEncryptedKeysMissing(): void
-    {
-        $response = ['encryptedData' => 'abc', 'aes' => true];
-
-        $result = $this->makeDecryptor()->decrypt($response);
-
-        $this->assertSame($response, $result);
+        $this->makeDecryptor()->decrypt(['encryptedData' => 'abc', 'aes' => true]);
     }
 
     // -------------------------------------------------------------------------
-    // Error handling
+    // Error handling — bad crypto material
     // -------------------------------------------------------------------------
 
     public function testDecryptThrowsOnInvalidEncryptedKeys(): void

@@ -23,18 +23,16 @@ class Decryptor
     /**
      * Decrypts an AES-encrypted API response envelope.
      *
-     * If the response does not carry the `aes` flag it is returned as-is,
-     * so error responses (no encryption) pass through transparently.
+     * Expects a response that has already been validated to contain `aes: true`.
+     * Throws if the envelope is missing required fields or decryption fails.
      *
      * @param array<string, mixed> $response
      * @return array<string, mixed>
      */
     public function decrypt(array $response): array
     {
-        if (empty($response['aes'])
-            || !isset($response['encryptedData'], $response['encryptedKeys'])
-        ) {
-            return $response;
+        if (!isset($response['encryptedData'], $response['encryptedKeys'])) {
+            throw new \InvalidArgumentException('Response is missing encryptedData or encryptedKeys');
         }
 
         /** @var RSA $privateKey */

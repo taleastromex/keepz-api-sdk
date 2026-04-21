@@ -23,7 +23,7 @@ class Client
     /** @var Encryptor */
     private $encryptor;
 
-    /** @var Decryptor|null */
+    /** @var Decryptor */
     private $decryptor;
 
     /**
@@ -31,14 +31,14 @@ class Client
      * @param string $identifier
      * @param HttpClient $http
      * @param Encryptor $encryptor
-     * @param Decryptor|null $decryptor When provided, encrypted API responses are decrypted automatically
+     * @param Decryptor $decryptor
      */
     public function __construct(
         string $baseUrl,
         string $identifier,
         HttpClient $http,
         Encryptor $encryptor,
-        ?Decryptor $decryptor = null
+        Decryptor $decryptor
     ) {
         $this->baseUrl = $baseUrl;
         $this->identifier = $identifier;
@@ -72,7 +72,7 @@ class Client
         return $this->encryptor;
     }
 
-    public function getDecryptor(): ?Decryptor
+    public function getDecryptor(): Decryptor
     {
         return $this->decryptor;
     }
