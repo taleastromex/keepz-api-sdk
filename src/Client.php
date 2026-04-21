@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace KeepzSdk;
 
 use KeepzSdk\Http\HttpClient;
+use KeepzSdk\Crypto\Decryptor;
 use KeepzSdk\Crypto\Encryptor;
 use KeepzSdk\Services\OrderService;
 
@@ -22,18 +23,28 @@ class Client
     /** @var Encryptor */
     private $encryptor;
 
+    /** @var Decryptor */
+    private $decryptor;
+
     /**
      * @param string $baseUrl
      * @param string $identifier
      * @param HttpClient $http
      * @param Encryptor $encryptor
+     * @param Decryptor $decryptor
      */
-    public function __construct(string $baseUrl, string $identifier, HttpClient $http, Encryptor $encryptor)
-    {
+    public function __construct(
+        string $baseUrl,
+        string $identifier,
+        HttpClient $http,
+        Encryptor $encryptor,
+        Decryptor $decryptor
+    ) {
         $this->baseUrl = $baseUrl;
         $this->identifier = $identifier;
         $this->http = $http;
         $this->encryptor = $encryptor;
+        $this->decryptor = $decryptor;
     }
 
     public function orders(): OrderService
@@ -59,5 +70,10 @@ class Client
     public function getEncryptor(): Encryptor
     {
         return $this->encryptor;
+    }
+
+    public function getDecryptor(): Decryptor
+    {
+        return $this->decryptor;
     }
 }

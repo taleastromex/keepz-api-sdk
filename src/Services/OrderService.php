@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace KeepzSdk\Services;
 
 use KeepzSdk\Client;
+use KeepzSdk\Exceptions\ApiException;
+use KeepzSdk\DTO\OrderCreatedData;
 
 class OrderService
 {
@@ -21,28 +23,41 @@ class OrderService
 
     /**
      * @param array<string, mixed> $data
-     * @return array<string, mixed>
+     * @return OrderCreatedData
+     * @throws \Exception|ApiException
      */
-    public function create(array $data): array
+    public function create(array $data): OrderCreatedData
     {
         $encrypted = $this->client->getEncryptor()->encrypt($data);
 
-        return $this->client->getHttp()->post(
+        $response = $this->client->getHttp()->post(
             $this->client->getBaseUrl() . '/api/integrator/order',
             array_merge([
                 'identifier' => $this->client->getIdentifier(),
             ], $encrypted)
+        );
+
+        if (empty($response['aes'])) {
+            throw new ApiException($response);
+        }
+
+        $decrypted = $this->client->getDecryptor()->decrypt($response);
+
+        return new OrderCreatedData(
+            $decrypted['integratorOrderId'],
+            $decrypted['urlForQR'],
         );
     }
 
     /**
      * @param array<string, mixed> $orderData
      * @param array<int, array<string, mixed>> $distributions
-     * @return array<string, mixed> 
+     * @return OrderCreatedData
+     * @throws \Exception|ApiException
      */
-    public function createSplit(array $orderData, array $distributions): array
+    public function createSplit(array $orderData, array $distributions): OrderCreatedData
     {
-        $orderData['distributions'] = $distributions;
+        $orderData['splitDetails'] = $distributions;
 
         return $this->create($orderData);
     }
