@@ -32,6 +32,10 @@ final class SavedCardData
         $this->expirationDate = $expirationDate;
         $this->cardBrand = $cardBrand;
     }
+
+    /**
+     * @param array<string, string> $data
+     */
     public static function fromArray(array $data): self
     {
         $provider = $data['provider'] ?? null;
