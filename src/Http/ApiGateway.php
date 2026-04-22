@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Http;
+namespace Taleastromex\KeepzApiSdk\Http;
 
-use KeepzSdk\Crypto\Decryptor;
-use KeepzSdk\Crypto\Encryptor;
-use KeepzSdk\Exceptions\ApiException;
+use Taleastromex\KeepzApiSdk\Crypto\Decryptor;
+use Taleastromex\KeepzApiSdk\Crypto\Encryptor;
+use Taleastromex\KeepzApiSdk\Exceptions\ApiException;
 
 class ApiGateway
 {

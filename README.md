@@ -20,20 +20,19 @@ PHP SDK for the [Keepz](https://www.developers.keepz.me) eCommerce payment API.
 ## Setup
 
 ```php
-use KeepzSdk\Client;
-use KeepzSdk\Http\HttpClient;
-use KeepzSdk\Crypto\Encryptor;
-use KeepzSdk\Crypto\Decryptor;
+use Taleastromex\KeepzApiSdk\Client;
+use Taleastromex\KeepzApiSdk\Http\HttpClient;
+use Taleastromex\KeepzApiSdk\Crypto\Encryptor;
+use Taleastromex\KeepzApiSdk\Crypto\Decryptor;
 
 $publicKey  = "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----";
 $privateKey = "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----";
 
-$client = new Client(
+$client = Client::create(
     'https://gateway.dev.keepz.me/ecommerce-service',
     'your-integrator-id',   // provided by Keepz
-    new HttpClient(),
-    new Encryptor($publicKey),
-    new Decryptor($privateKey)
+    $publicKey,
+    $privateKey
 );
 ```
 
@@ -46,7 +45,7 @@ The SDK encrypts every outgoing request with RSA + AES automatically, and decryp
 ## Create an order
 
 ```php
-use KeepzSdk\Exceptions\ApiException;
+use Taleastromex\KeepzApiSdk\Exceptions\ApiException;
 
 try {
     $order = $client->orders()->create([
@@ -198,7 +197,7 @@ Use `refund()` to initiate a return of funds to the payer. Refunds are only poss
 ### Simple refund
 
 ```php
-use KeepzSdk\Exceptions\ApiException;
+use Taleastromex\KeepzApiSdk\Exceptions\ApiException;
 
 try {
     $result = $client->orders()->refund([
@@ -261,7 +260,7 @@ Use `cards()->getSavedCard()` to retrieve tokenized card information after a cus
 > **Note:** The `integratorOrderId` must correspond to an order where `saveCard: true` was passed at creation time and the payment was completed successfully.
 
 ```php
-use KeepzSdk\Exceptions\ApiException;
+use Taleastromex\KeepzApiSdk\Exceptions\ApiException;
 
 try {
     $card = $client->cards()->getSavedCard('your-unique-order-uuid');
@@ -297,7 +296,7 @@ $client->orders()->create([
 All API errors are thrown as `KeepzSdk\Exceptions\ApiException` before any decryption is attempted:
 
 ```php
-use KeepzSdk\Exceptions\ApiException;
+use Taleastromex\KeepzApiSdk\Exceptions\ApiException;
 
 try {
     $order = $client->orders()->create([...]);

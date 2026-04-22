@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Tests\Http;
+namespace Taleastromex\KeepzApiSdk\Tests\Http;
 
-use KeepzSdk\Crypto\Decryptor;
-use KeepzSdk\Crypto\Encryptor;
-use KeepzSdk\Exceptions\ApiException;
-use KeepzSdk\Http\ApiGateway;
-use KeepzSdk\Http\HttpClientInterface;
+use Taleastromex\KeepzApiSdk\Crypto\Decryptor;
+use Taleastromex\KeepzApiSdk\Crypto\Encryptor;
+use Taleastromex\KeepzApiSdk\Exceptions\ApiException;
+use Taleastromex\KeepzApiSdk\Http\ApiGateway;
+use Taleastromex\KeepzApiSdk\Http\HttpClientInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 

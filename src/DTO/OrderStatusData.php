@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\DTO;
+namespace Taleastromex\KeepzApiSdk\DTO;
 
 final class OrderStatusData
 {

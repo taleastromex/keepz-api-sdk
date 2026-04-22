@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Tests\Crypto;
+namespace Taleastromex\KeepzApiSdk\Tests\Crypto;
 
-use KeepzSdk\Crypto\Decryptor;
-use KeepzSdk\Crypto\Encryptor;
+use Taleastromex\KeepzApiSdk\Crypto\Decryptor;
+use Taleastromex\KeepzApiSdk\Crypto\Encryptor;
 use PHPUnit\Framework\TestCase;
 
 class DecryptorTest extends TestCase

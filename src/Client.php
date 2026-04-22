@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk;
+namespace Taleastromex\KeepzApiSdk;
 
-use KeepzSdk\Crypto\Decryptor;
-use KeepzSdk\Crypto\Encryptor;
-use KeepzSdk\Http\ApiGateway;
-use KeepzSdk\Http\HttpClient;
-use KeepzSdk\Services\CardService;
-use KeepzSdk\Services\OrderService;
+use Taleastromex\KeepzApiSdk\Crypto\Decryptor;
+use Taleastromex\KeepzApiSdk\Crypto\Encryptor;
+use Taleastromex\KeepzApiSdk\Http\ApiGateway;
+use Taleastromex\KeepzApiSdk\Http\HttpClient;
+use Taleastromex\KeepzApiSdk\Services\CardService;
+use Taleastromex\KeepzApiSdk\Services\OrderService;
 
 class Client
 {

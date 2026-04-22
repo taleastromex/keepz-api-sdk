@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Tests\Services;
+namespace Taleastromex\KeepzApiSdk\Tests\Services;
 
-use KeepzSdk\DTO\OrderCreatedData;
-use KeepzSdk\DTO\OrderStatusData;
-use KeepzSdk\Exceptions\ApiException;
-use KeepzSdk\Http\ApiGateway;
-use KeepzSdk\Services\OrderService;
+use Taleastromex\KeepzApiSdk\DTO\OrderCreatedData;
+use Taleastromex\KeepzApiSdk\DTO\OrderStatusData;
+use Taleastromex\KeepzApiSdk\Exceptions\ApiException;
+use Taleastromex\KeepzApiSdk\Http\ApiGateway;
+use Taleastromex\KeepzApiSdk\Services\OrderService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Services;
+namespace Taleastromex\KeepzApiSdk\Services;
 
-use KeepzSdk\DTO\SavedCardData;
-use KeepzSdk\Exceptions\ApiException;
-use KeepzSdk\Http\ApiGateway;
+use Taleastromex\KeepzApiSdk\DTO\SavedCardData;
+use Taleastromex\KeepzApiSdk\Exceptions\ApiException;
+use Taleastromex\KeepzApiSdk\Http\ApiGateway;
 
 class CardService
 {

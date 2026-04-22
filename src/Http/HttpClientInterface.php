@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Http;
+namespace Taleastromex\KeepzApiSdk\Http;
 
 interface HttpClientInterface
 {
