@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Tests\Http;
+namespace Taleastromex\KeepzApiSdk\Tests\Http;
 
-use KeepzSdk\Http\HttpClient;
+use Taleastromex\KeepzApiSdk\Http\HttpClient;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\TestCase;
 
@@ -12,7 +12,7 @@ class HttpClientTest extends TestCase
 {
     use PHPMock;
 
-    private const NAMESPACE = 'KeepzSdk\Http';
+    private const NAMESPACE = 'Taleastromex\KeepzApiSdk\Http';
 
     // -------------------------------------------------------------------------
     // GET — response decoding

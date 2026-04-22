@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Tests\Crypto;
+namespace Taleastromex\KeepzApiSdk\Tests\Crypto;
 
-use KeepzSdk\Crypto\Encryptor;
+use Taleastromex\KeepzApiSdk\Crypto\Encryptor;
 use PHPUnit\Framework\TestCase;
 use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Crypt\RSA;

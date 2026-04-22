@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Crypto;
+namespace Taleastromex\KeepzApiSdk\Crypto;
 
 use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Crypt\RSA;

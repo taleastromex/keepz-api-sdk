@@ -1,6 +1,6 @@
 <?php
 
-namespace KeepzSdk\DTO;
+namespace Taleastromex\KeepzApiSdk\DTO;
 
 final class SavedCardData
 {

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Tests\Services;
+namespace Taleastromex\KeepzApiSdk\Tests\Services;
 
-use KeepzSdk\DTO\SavedCardData;
-use KeepzSdk\Exceptions\ApiException;
-use KeepzSdk\Http\ApiGateway;
-use KeepzSdk\Services\CardService;
+use Taleastromex\KeepzApiSdk\DTO\SavedCardData;
+use Taleastromex\KeepzApiSdk\Exceptions\ApiException;
+use Taleastromex\KeepzApiSdk\Http\ApiGateway;
+use Taleastromex\KeepzApiSdk\Services\CardService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 

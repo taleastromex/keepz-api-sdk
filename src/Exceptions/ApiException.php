@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace KeepzSdk\Exceptions;
+namespace Taleastromex\KeepzApiSdk\Exceptions;
 
 class ApiException extends \RuntimeException
 {
